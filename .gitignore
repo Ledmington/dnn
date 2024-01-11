@@ -1,0 +1,4 @@
+*.x
+bin/
+build/
+.vscode/
