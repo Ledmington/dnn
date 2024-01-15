@@ -65,9 +65,15 @@ model *nelder_mead(const uint32_t in_dim, const uint32_t out_dim,
   model *expanded = create_model(in_dim, out_dim);
   model *contracted = create_model(in_dim, out_dim);
   float *evals = new float[ndims + 1];
+
   for (uint32_t i{0u}; i < ndims + 1; i++) {
     simplex[i] = create_model(in_dim, out_dim);
     init_random(in_dim, out_dim, simplex[i]);
+  }
+
+#pragma omp parallel for schedule(static) default(none)                        \
+    shared(ndims, s, d, simplex, n_samples, in_dim, out_dim, evals)
+  for (uint32_t i = 0; i < ndims + 1; i++) {
     evals[i] = loss(in_dim, out_dim, n_samples, simplex[i], d, s);
   }
 
@@ -199,7 +205,9 @@ model *nelder_mead(const uint32_t in_dim, const uint32_t out_dim,
 
     // step 6: shrink
     printf("%u: shrink: loss %.6f\n", it, evals[0]);
-    for (uint32_t i{1u}; i < ndims + 1; i++) {
+#pragma omp parallel for schedule(static) default(none)                        \
+    shared(ndims, simplex, in_dim, out_dim, s, d, evals, n_samples)
+    for (uint32_t i = 1; i < ndims + 1; i++) {
       for (uint32_t j{0u}; j < in_dim * out_dim; j++) {
         simplex[i]->w[j] =
             simplex[0]->w[j] +

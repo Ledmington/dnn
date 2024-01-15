@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-std=c++17 -Wall -Wextra -Werror -Wshadow -fno-exceptions -fno-rtti -s -static
+CXXFLAGS=-std=c++17 -Wall -Wextra -Werror -Wshadow -fno-exceptions -fno-rtti -s -fopenmp
 OPTFLAGS=-O3 -DNDEBUG -march=native -mtune=native
 DEBUGFLAGS=-O0 -g -fno-omit-frame-pointer -fsanitize=thread,leak,address,undefined,float-divide-by-zero
 
