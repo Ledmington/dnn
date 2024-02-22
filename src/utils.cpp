@@ -1,8 +1,6 @@
-#pragma once
+#include <utils.hpp>
 
-#include <cstdint>
-
-#include "model.hpp"
+namespace dnn {
 
 // custom (inefficient) sort
 void bubble_sort(model **m, float *e, const uint32_t n) {
@@ -24,3 +22,5 @@ void bubble_sort(model **m, float *e, const uint32_t n) {
     }
   }
 }
+
+} // namespace dnn

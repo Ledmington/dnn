@@ -1,12 +1,8 @@
-#pragma once
+#include <cstring>
 
-#include <cstdint>
-#include <random>
+#include <model.hpp>
 
-typedef struct {
-  float *w;
-  float *b;
-} model;
+namespace dnn {
 
 model *create_model(const uint32_t in_dim, const uint32_t out_dim) {
   model *m = new model;
@@ -44,7 +40,12 @@ void init_random(const uint32_t in_dim, const uint32_t out_dim,
   }
 }
 
-float sigmoid(const float x) { return 1.0f / (1.0f + std::exp(-x)); }
+float activation(const float x) {
+  // sigmoid
+  return 1.0f / (1.0f + std::exp(-x));
+  // return std::max(0.0f, x);
+  // return x;
+}
 
 void evaluate(const uint32_t in_dim, const uint32_t out_dim, const model *m,
               const float *in, float *out) {
@@ -53,6 +54,8 @@ void evaluate(const uint32_t in_dim, const uint32_t out_dim, const model *m,
     for (uint32_t j{0u}; j < in_dim; j++) {
       tmp = tmp + m->w[i * in_dim + j] * in[j];
     }
-    out[i] = sigmoid(tmp + m->b[i]);
+    out[i] = activation(tmp + m->b[i]);
   }
 }
+
+} // namespace dnn

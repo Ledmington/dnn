@@ -1,10 +1,6 @@
-#pragma once
+#include <train.hpp>
 
-#include <cstdint>
-#include <random>
-
-#include "model.hpp"
-#include "utils.hpp"
+namespace dnn {
 
 float loss(const uint32_t in_dim, const uint32_t out_dim,
            const uint32_t n_samples, const model *m, const float *d,
@@ -71,14 +67,12 @@ model *nelder_mead(const uint32_t in_dim, const uint32_t out_dim,
     init_random(in_dim, out_dim, simplex[i]);
   }
 
-#pragma omp parallel for schedule(static) default(none)                        \
-    shared(ndims, s, d, simplex, n_samples, in_dim, out_dim, evals)
   for (uint32_t i = 0; i < ndims + 1; i++) {
     evals[i] = loss(in_dim, out_dim, n_samples, simplex[i], d, s);
   }
 
   for (uint32_t it{0u};
-       it < max_attempts && std::abs(evals[0] - evals[1]) >= 1e-6; it++) {
+       it < max_attempts /*&& std::abs(evals[0] - evals[1]) >= 1e-6*/; it++) {
     // step 1: sort
     bubble_sort(simplex, evals, ndims + 1);
 
@@ -118,7 +112,7 @@ model *nelder_mead(const uint32_t in_dim, const uint32_t out_dim,
     const float reflected_score =
         loss(in_dim, out_dim, n_samples, reflected, d, s);
     if (reflected_score < evals[ndims - 1] && reflected_score >= evals[0]) {
-      printf("%u: reflection: loss %.6f\n", it, evals[0]);
+      printf("%u: reflection: loss %.6f %.6f %.6f\n", it, evals[0],evals[1],evals[ndims]);
       evals[ndims - 1] = reflected_score;
       model *tmp = simplex[ndims - 1];
       simplex[ndims - 1] = reflected;
@@ -141,7 +135,7 @@ model *nelder_mead(const uint32_t in_dim, const uint32_t out_dim,
 
       const float expanded_score =
           loss(in_dim, out_dim, n_samples, expanded, d, s);
-      printf("%u: expansion: loss %.6f\n", it, evals[0]);
+      printf("%u: expansion: loss %.6f %.6f %.6f\n", it, evals[0],evals[1],evals[ndims]);
       if (expanded_score < reflected_score) {
         evals[ndims - 1] = expanded_score;
         model *tmp = simplex[ndims - 1];
@@ -172,7 +166,7 @@ model *nelder_mead(const uint32_t in_dim, const uint32_t out_dim,
       const float contracted_score =
           loss(in_dim, out_dim, n_samples, contracted, d, s);
       if (contracted_score < reflected_score) {
-        printf("%u; contraction: loss %.6f\n", it, evals[0]);
+        printf("%u; contraction: loss %.6f %.6f %.6f\n", it, evals[0],evals[1],evals[ndims]);
         evals[ndims] = contracted_score;
         model *tmp = simplex[ndims];
         simplex[ndims] = contracted;
@@ -194,7 +188,7 @@ model *nelder_mead(const uint32_t in_dim, const uint32_t out_dim,
       const float contracted_score =
           loss(in_dim, out_dim, n_samples, contracted, d, s);
       if (contracted_score < evals[ndims]) {
-        printf("%u: contraction: loss %.6f\n", it, evals[0]);
+        printf("%u: contraction: loss %.6f %.6f %.6f\n", it, evals[0],evals[1],evals[ndims]);
         evals[ndims] = contracted_score;
         model *tmp = simplex[ndims];
         simplex[ndims] = contracted;
@@ -204,9 +198,7 @@ model *nelder_mead(const uint32_t in_dim, const uint32_t out_dim,
     }
 
     // step 6: shrink
-    printf("%u: shrink: loss %.6f\n", it, evals[0]);
-#pragma omp parallel for schedule(static) default(none)                        \
-    shared(ndims, simplex, in_dim, out_dim, s, d, evals, n_samples)
+    printf("%u: shrink: loss %.6f %.6f %.6f\n", it, evals[0],evals[1],evals[ndims]);
     for (uint32_t i = 1; i < ndims + 1; i++) {
       for (uint32_t j{0u}; j < in_dim * out_dim; j++) {
         simplex[i]->w[j] =
@@ -237,3 +229,5 @@ model *nelder_mead(const uint32_t in_dim, const uint32_t out_dim,
 
   return m;
 }
+
+} // namespace dnn
